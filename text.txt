@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Stats Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .table-cell-header {
+            background-color: #f9fafb;
+            font-weight: 500;
+        }
+        /* Style for the new fields to hide/show them */
+        .hidden-field {
+            display: none;
+        }
+        /* Custom modal styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mx-auto p-4 md:p-8">
+
+    <!-- Title and Game Info -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Football Stats Tracker</h1>
+        <p class="text-lg text-gray-500 mt-2">Enter each play to track game and player statistics in real time.</p>
+    </div>
+
+    <!-- Play Input Card -->
+    <div class="card">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Input New Play</h2>
+        <form id="play-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Player Name -->
+            <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                <label for="playerName" class="block text-sm font-medium text-gray-700 mb-1">Player Name</label>
+                <input type="text" id="playerName" name="playerName" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border">
+            </div>
+
+            <!-- Player Position -->
+            <div>
+                <label for="playerPosition" class="block text-sm font-medium text-gray-700 mb-1">Player Position</label>
+                <select id="playerPosition" name="playerPosition" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border bg-white">
+                    <option value="">Select Position</option>
+                    <option value="QB">QB</option>
+                    <option value="RB">RB</option>
+                    <option value="WR">WR</option>
+                    <option value="TE">TE</option>
+                    <option value="DL">DL</option>
+                    <option value="LB">LB</option>
+                    <option value="DB">DB</option>
+                </select>
+            </div>
+
+            <!-- Play Type -->
+            <div>
+                <label for="playType" class="block text-sm font-medium text-gray-700 mb-1">Play Type</label>
+                <select id="playType" name="playType" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border bg-white">
+                    <option value="">Select Play</option>
+                    <option value="Pass">Pass</option>
+                    <option value="Run">Run</option>
+                    <option value="Tackle">Tackle</option>
+                    <option value="Sack">Sack</option>
+                    <option value="Interception">Interception</option>
+                    <option value="Forced Fumble">Forced Fumble</option>
+                    <option value="Fumble Recovery">Fumble Recovery</option>
+                    <option value="Touchdown">Touchdown</option>
+                    <option value="Penalty">Penalty</option>
+                </select>
+            </div>
+            
+            <!-- Completion Status (Hidden by default) -->
+            <div id="completion-status-container" class="hidden-field">
+                <label for="completionStatus" class="block text-sm font-medium text-gray-700 mb-1">Completion Status</label>
+                <select id="completionStatus" name="completionStatus" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border bg-white">
+                    <option value="complete">Complete</option>
+                    <option value="incomplete">Incomplete</option>
+                </select>
+            </div>
+
+            <!-- Receiver Name (Hidden by default) -->
+            <div id="receiver-name-container" class="hidden-field">
+                <label for="receiverName" class="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
+                <input type="text" id="receiverName" name="receiverName" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border">
+            </div>
+
+            <!-- Yards Gained -->
+            <div>
+                <label for="yards" class="block text-sm font-medium text-gray-700 mb-1">Yards Gained/Lost</label>
+                <input type="number" id="yards" name="yards" value="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-150 ease-in-out p-2 border">
+            </div>
+
+            <!-- Touchdown Checkbox -->
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="isTouchdown" name="isTouchdown" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                <label for="isTouchdown" class="text-sm font-medium text-gray-700">Is a Touchdown?</label>
+            </div>
+
+            <!-- Turnover Checkbox -->
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="isTurnover" name="isTurnover" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                <label for="isTurnover" class="text-sm font-medium text-gray-700">Is a Turnover?</label>
+            </div>
+
+            <!-- First Down Checkbox -->
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="isFirstDown" name="isFirstDown" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                <label for="isFirstDown" class="text-sm font-medium text-gray-700">Is a First Down?</label>
+            </div>
+
+            <div class="flex items-center space-x-4 col-span-1 md:col-span-2 lg:col-span-4 mt-2">
+                <button type="submit" class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition duration-150 ease-in-out">
+                    Add Play
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Game Summary Card -->
+    <div class="card">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Game Summary</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <p class="text-3xl font-bold text-indigo-600" id="totalYards">0</p>
+                <p class="text-sm text-gray-600 mt-1">Total Yards</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <p class="text-3xl font-bold text-indigo-600" id="passingYards">0</p>
+                <p class="text-sm text-gray-600 mt-1">Passing Yards</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <p class="text-3xl font-bold text-indigo-600" id="rushingYards">0</p>
+                <p class="text-sm text-gray-600 mt-1">Rushing Yards</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <p class="text-3xl font-bold text-indigo-600" id="totalTouchdowns">0</p>
+                <p class="text-sm text-gray-600 mt-1">Total Touchdowns</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Player Stats Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Offense Stats -->
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Offense Player Stats</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto">
+                    <thead>
+                        <tr class="text-gray-600 uppercase text-xs">
+                            <th class="py-3 px-4 table-cell-header rounded-tl-lg">Player</th>
+                            <th class="py-3 px-4 table-cell-header">Pos</th>
+                            <th class="py-3 px-4 table-cell-header">Pass Att</th>
+                            <th class="py-3 px-4 table-cell-header">Pass Comp</th>
+                            <th class="py-3 px-4 table-cell-header">Pass Yds</th>
+                            <th class="py-3 px-4 table-cell-header">Comp %</th>
+                            <th class="py-3 px-4 table-cell-header">Rush Att</th>
+                            <th class="py-3 px-4 table-cell-header">Rush Yds</th>
+                            <th class="py-3 px-4 table-cell-header">Rec</th>
+                            <th class="py-3 px-4 table-cell-header">Rec Yds</th>
+                            <th class="py-3 px-4 table-cell-header">TDs</th>
+                            <th class="py-3 px-4 table-cell-header">1st Downs</th>
+                            <th class="py-3 px-4 table-cell-header rounded-tr-lg">Int Thrown</th>
+                        </tr>
+                    </thead>
+                    <tbody id="offense-stats-body" class="bg-white divide-y divide-gray-200 text-gray-700">
+                        <!-- Stats will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Defense Stats -->
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Defense Player Stats</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto">
+                    <thead>
+                        <tr class="text-gray-600 uppercase text-xs">
+                            <th class="py-3 px-4 table-cell-header rounded-tl-lg">Player</th>
+                            <th class="py-3 px-4 table-cell-header">Pos</th>
+                            <th class="py-3 px-4 table-cell-header">Tackles</th>
+                            <th class="py-3 px-4 table-cell-header">Sacks</th>
+                            <th class="py-3 px-4 table-cell-header">Ints</th>
+                            <th class="py-3 px-4 table-cell-header">Fumbles Forced</th>
+                            <th class="py-3 px-4 table-cell-header rounded-tr-lg">Fumble Rec</th>
+                        </tr>
+                    </thead>
+                    <tbody id="defense-stats-body" class="bg-white divide-y divide-gray-200 text-gray-700">
+                        <!-- Stats will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export and Reset Buttons at the bottom -->
+    <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mt-8">
+        <button id="undo-button" class="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-md shadow-lg hover:bg-yellow-600 transition duration-150 ease-in-out">
+            Undo Last Play
+        </button>
+        <button id="export-button" class="px-8 py-4 bg-green-500 text-white font-semibold rounded-md shadow-lg hover:bg-green-600 transition duration-150 ease-in-out">
+            Export to Google Sheet
+        </button>
+        <button id="reset-button" class="px-6 py-3 bg-red-500 text-white font-semibold rounded-md shadow-lg hover:bg-red-600 transition duration-150 ease-in-out">
+            Reset All Stats
+        </button>
+    </div>
+
+    <!-- Custom Modal for Filename Input -->
+    <div id="filename-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">Enter Filename</h3>
+            <input type="text" id="filename-input" class="w-full p-2 border rounded-md mb-4" placeholder="football_stats.csv">
+            <div class="flex justify-end space-x-2">
+                <button id="modal-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button id="modal-ok" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Export</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Data structures to hold our stats
+    let gameStats = {
+        totalYards: 0,
+        passingYards: 0,
+        rushingYards: 0,
+        totalTouchdowns: 0,
+        totalFirstDowns: 0,
+        turnovers: 0,
+        sacks: 0,
+    };
+
+    let players = {}; // Object to store individual player data
+    let plays = []; // Array to store a history of plays for the undo function
+
+    /**
+     * Resets all stats and clears the UI.
+     */
+    function resetStats() {
+        gameStats = {
+            totalYards: 0,
+            passingYards: 0,
+            rushingYards: 0,
+            totalTouchdowns: 0,
+            totalFirstDowns: 0,
+            turnovers: 0,
+            sacks: 0,
+        };
+        players = {};
+        plays = [];
+        renderStats();
+    }
+
+    /**
+     * Initializes a new player object with default stats.
+     * @param {string} playerName The name of the player.
+     * @param {string} playerPosition The position of the player.
+     * @returns {object} A new player object.
+     */
+    function createPlayer(playerName, playerPosition) {
+        return {
+            name: playerName,
+            pos: playerPosition,
+            stats: {
+                passingYards: 0,
+                passingAttempts: 0,
+                passCompletions: 0,
+                rushingYards: 0,
+                rushingAttempts: 0,
+                receivingYards: 0,
+                receptions: 0,
+                touchdowns: 0,
+                firstDowns: 0,
+                interceptionsThrown: 0,
+                tackles: 0,
+                sacks: 0,
+                interceptions: 0,
+                forcedFumbles: 0,
+                fumbleRecoveries: 0,
+            }
+        };
+    }
+
+    /**
+     * Renders the game and player stats to the DOM.
+     */
+    function renderStats() {
+        // Update Game Summary
+        document.getElementById('totalYards').textContent = gameStats.totalYards;
+        document.getElementById('passingYards').textContent = gameStats.passingYards;
+        document.getElementById('rushingYards').textContent = gameStats.rushingYards;
+        document.getElementById('totalTouchdowns').textContent = gameStats.totalTouchdowns;
+
+        // Clear existing tables
+        const offenseTableBody = document.getElementById('offense-stats-body');
+        const defenseTableBody = document.getElementById('defense-stats-body');
+        offenseTableBody.innerHTML = '';
+        defenseTableBody.innerHTML = '';
+
+        // Sort players by position and name for consistent display
+        const sortedPlayers = Object.values(players).sort((a, b) => {
+            const posOrder = { 'QB': 1, 'RB': 2, 'WR': 3, 'TE': 4, 'DL': 5, 'LB': 6, 'DB': 7 };
+            const posA = posOrder[a.pos] || 99;
+            const posB = posOrder[b.pos] || 99;
+            if (posA !== posB) {
+                return posA - posB;
+            }
+            return a.name.localeCompare(b.name);
+        });
+
+        // Loop through players and populate tables
+        sortedPlayers.forEach(player => {
+            if (['QB', 'RB', 'WR', 'TE'].includes(player.pos)) {
+                // Calculate Yards per stat and Completion Percentage
+                const compPct = player.stats.passingAttempts > 0 ? ((player.stats.passCompletions / player.stats.passingAttempts) * 100).toFixed(1) : 0;
+                
+                // Render offense players
+                const row = `
+                    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <td class="py-3 px-4 whitespace-nowrap">${player.name}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.pos}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.passingAttempts}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.passCompletions}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.passingYards}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${compPct}%</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.rushingAttempts}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.rushingYards}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.receptions}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.receivingYards}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.touchdowns}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.firstDowns}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.interceptionsThrown}</td>
+                    </tr>
+                `;
+                offenseTableBody.insertAdjacentHTML('beforeend', row);
+            } else if (['DL', 'LB', 'DB'].includes(player.pos)) {
+                // Render defense players
+                const row = `
+                    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <td class="py-3 px-4 whitespace-nowrap">${player.name}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.pos}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.tackles}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.sacks}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.interceptions}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.forcedFumbles}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${player.stats.fumbleRecoveries}</td>
+                    </tr>
+                `;
+                defenseTableBody.insertAdjacentHTML('beforeend', row);
+            }
+        });
+    }
+
+    /**
+     * Handles the form submission to track a new play.
+     * @param {Event} event The form submission event.
+     */
+    document.getElementById('play-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Get form values
+        const form = event.target;
+        const playerName = form.playerName.value.trim();
+        const playerPosition = form.playerPosition.value;
+        const playType = form.playType.value;
+        const yards = parseInt(form.yards.value) || 0;
+        const isTouchdown = form.isTouchdown.checked;
+        const isTurnover = form.isTurnover.checked;
+        const isFirstDown = form.isFirstDown.checked;
+        const completionStatus = form.completionStatus ? form.completionStatus.value : null;
+        const receiverName = document.getElementById('receiverName').value.trim();
+        
+        // Store the play data before processing
+        const playData = { playerName, playerPosition, playType, yards, isTouchdown, isTurnover, isFirstDown, completionStatus, receiverName };
+        plays.push(playData);
+
+        processPlay(playData);
+
+        renderStats();
+
+        // Clear the form after submission
+        form.reset();
+        form.playerName.focus();
+    });
+
+    /**
+     * Processes and updates stats for a single play.
+     * This function is used for both adding and undoing plays.
+     * @param {object} playData The data for the play to process.
+     * @param {number} multiplier Multiplier for the stat changes (1 for adding, -1 for undoing).
+     */
+    function processPlay(playData, multiplier = 1) {
+        const { playerName, playerPosition, playType, yards, isTouchdown, isTurnover, isFirstDown, completionStatus, receiverName } = playData;
+
+        // Check if player exists, if not, create them
+        if (!players[playerName]) {
+            players[playerName] = createPlayer(playerName, playerPosition);
+        }
+
+        // Update stats based on play type
+        switch (playType) {
+            case 'Pass':
+                players[playerName].stats.passingAttempts += (1 * multiplier);
+                if (completionStatus === 'complete') {
+                    // Update passer stats
+                    players[playerName].stats.passCompletions += (1 * multiplier);
+                    players[playerName].stats.passingYards += (yards * multiplier);
+
+                    // Update receiver stats
+                    if (receiverName && !players[receiverName]) {
+                         // Check if receiver has a position, default to WR
+                        const receiverPos = ['QB', 'RB', 'WR', 'TE'].includes(playerPosition) ? 'WR' : 'WR';
+                        players[receiverName] = createPlayer(receiverName, receiverPos);
+                    }
+                    if (receiverName) {
+                        players[receiverName].stats.receivingYards += (yards * multiplier);
+                        players[receiverName].stats.receptions += (1 * multiplier);
+                    }
+
+                    // Update game summary
+                    gameStats.passingYards += (yards * multiplier);
+                    gameStats.totalYards += (yards * multiplier);
+
+                } else if (completionStatus === 'incomplete') {
+                    // No yards for incomplete passes
+                    gameStats.totalYards += 0;
+                }
+
+                if (isTurnover) {
+                    players[playerName].stats.interceptionsThrown += (1 * multiplier);
+                    gameStats.turnovers += (1 * multiplier);
+                }
+                if (isFirstDown && completionStatus === 'complete') {
+                    players[playerName].stats.firstDowns += (1 * multiplier);
+                    gameStats.totalFirstDowns += (1 * multiplier);
+                }
+                break;
+            case 'Run':
+                players[playerName].stats.rushingYards += (yards * multiplier);
+                players[playerName].stats.rushingAttempts += (1 * multiplier);
+                gameStats.rushingYards += (yards * multiplier);
+                gameStats.totalYards += (yards * multiplier);
+                if (isFirstDown) {
+                    players[playerName].stats.firstDowns += (1 * multiplier);
+                    gameStats.totalFirstDowns += (1 * multiplier);
+                }
+                break;
+            case 'Tackle':
+                players[playerName].stats.tackles += (1 * multiplier);
+                break;
+            case 'Sack':
+                players[playerName].stats.sacks += (1 * multiplier);
+                gameStats.sacks += (1 * multiplier);
+                break;
+            case 'Interception':
+                players[playerName].stats.interceptions += (1 * multiplier);
+                gameStats.turnovers += (1 * multiplier); // It is a turnover for the offense
+                break;
+            case 'Forced Fumble':
+                players[playerName].stats.forcedFumbles += (1 * multiplier);
+                break;
+            case 'Fumble Recovery':
+                players[playerName].stats.fumbleRecoveries += (1 * multiplier);
+                gameStats.turnovers += (1 * multiplier); // It is a turnover for the offense
+                break;
+            case 'Touchdown':
+                // A touchdown is handled by the yards field for Pass/Run/Reception. This is for standalone TDs.
+                players[playerName].stats.touchdowns += (1 * multiplier);
+                gameStats.totalTouchdowns += (1 * multiplier);
+                if (yards > 0) {
+                     gameStats.totalYards += (yards * multiplier);
+                }
+                if (isFirstDown) {
+                    players[playerName].stats.firstDowns += (1 * multiplier);
+                    gameStats.totalFirstDowns += (1 * multiplier);
+                }
+                break;
+            case 'Penalty':
+                // Penalties are not currently tracked in the simple stats, but the logic can be added here.
+                break;
+        }
+    }
+
+    /**
+     * Reverts the last play added by negating its stats.
+     */
+    function undoLastPlay() {
+        if (plays.length === 0) {
+            return; // No plays to undo
+        }
+
+        const lastPlay = plays.pop(); // Remove and get the last play
+        processPlay(lastPlay, -1); // Process with a -1 multiplier to subtract stats
+        renderStats();
+    }
+
+
+    /**
+     * Exports the stats to a CSV file.
+     */
+    function exportData(filename) {
+        const offenseHeaders = ['Player', 'Pos', 'Pass Att', 'Pass Comp', 'Pass Yds', 'Comp %', 'Rush Att', 'Rush Yds', 'Rec', 'Rec Yds', 'TDs', '1st Downs', 'Int Thrown'];
+        const defenseHeaders = ['Player', 'Pos', 'Tackles', 'Sacks', 'Ints', 'Fumbles Forced', 'Fumble Rec'];
+
+        const offenseRows = [];
+        const defenseRows = [];
+
+        Object.values(players).forEach(player => {
+            if (['QB', 'RB', 'WR', 'TE'].includes(player.pos)) {
+                const compPct = player.stats.passingAttempts > 0 ? ((player.stats.passCompletions / player.stats.passingAttempts) * 100).toFixed(1) : 0;
+                
+                offenseRows.push([
+                    player.name, player.pos, player.stats.passingAttempts, player.stats.passCompletions, player.stats.passingYards,
+                    `${compPct}%`, player.stats.rushingAttempts, player.stats.rushingYards, player.stats.receptions, player.stats.receivingYards,
+                    player.stats.touchdowns, player.stats.firstDowns, player.stats.interceptionsThrown
+                ]);
+            } else if (['DL', 'LB', 'DB'].includes(player.pos)) {
+                defenseRows.push([
+                    player.name, player.pos, player.stats.tackles, player.stats.sacks, player.stats.interceptions,
+                    player.stats.forcedFumbles, player.stats.fumbleRecoveries
+                ]);
+            }
+        });
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Offense table
+        csvContent += "Offense Statsn";
+        csvContent += offenseHeaders.join(',') + 'n';
+        offenseRows.forEach(row => {
+            csvContent += row.join(',') + 'n';
+        });
+
+        // Add a separator
+        csvContent += "nn";
+
+        // Defense table
+        csvContent += "Defense Statsn";
+        csvContent += defenseHeaders.join(',') + 'n';
+        defenseRows.forEach(row => {
+            csvContent += row.join(',') + 'n';
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+
+    // Event listener for the Reset button
+    document.getElementById('reset-button').addEventListener('click', function() {
+        resetStats();
+    });
+
+    // Event listener for the Export button
+    document.getElementById('export-button').addEventListener('click', function() {
+        document.getElementById('filename-modal').classList.remove('hidden');
+    });
+
+    // Event listeners for the custom modal
+    document.getElementById('modal-cancel').addEventListener('click', function() {
+        document.getElementById('filename-modal').classList.add('hidden');
+    });
+
+    document.getElementById('modal-ok').addEventListener('click', function() {
+        const filenameInput = document.getElementById('filename-input');
+        const filename = filenameInput.value.trim() || 'football_stats.csv';
+        document.getElementById('filename-modal').classList.add('hidden');
+        exportData(filename);
+    });
+
+    // Event listener for the Undo button
+    document.getElementById('undo-button').addEventListener('click', function() {
+        undoLastPlay();
+    });
+
+    // Handle visibility of completion status field and receiver field
+    document.getElementById('playType').addEventListener('change', toggleVisibility);
+    document.getElementById('completionStatus').addEventListener('change', toggleVisibility);
+
+    function toggleVisibility() {
+        const playType = document.getElementById('playType').value;
+        const completionStatus = document.getElementById('completionStatus').value;
+        const completionStatusContainer = document.getElementById('completion-status-container');
+        const receiverNameContainer = document.getElementById('receiver-name-container');
+
+        // Show completion status only for passes
+        if (playType === 'Pass') {
+            completionStatusContainer.classList.remove('hidden-field');
+        } else {
+            completionStatusContainer.classList.add('hidden-field');
+        }
+
+        // Show receiver name only for complete passes
+        if (playType === 'Pass' && completionStatus === 'complete') {
+            receiverNameContainer.classList.remove('hidden-field');
+        } else {
+            receiverNameContainer.classList.add('hidden-field');
+        }
+    }
+
+    // Initial render when the page loads
+    window.onload = function() {
+        renderStats();
+    };
+</script>
+</body>
+</html>
